@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Node.js to DockerHub
+name: CI/CD Pipeline - Flask to DockerHub
 
 on:
   push:
@@ -11,23 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout the code
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      # 2️⃣ Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          node-version: '18'
+          python-version: '3.10'
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install dependencies (optional check)
       - name: Install dependencies
-        run: npm install
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # 4️⃣ Run tests (optional - skip if no tests)
+      # 4️⃣ Run tests (skip if none)
       - name: Run tests
-        run: npm test || echo "No tests found"
+        run: |
+          if [ -f tests/test_app.py ]; then pytest tests/; else echo "No tests found"; fi
 
       # 5️⃣ Login to DockerHub
       - name: Login to DockerHub
@@ -38,8 +40,9 @@ jobs:
 
       # 6️⃣ Build Docker image
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/node-app:latest .
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest .
 
       # 7️⃣ Push Docker image
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/node-app:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-app:latest
+
